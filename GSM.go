@@ -53,8 +53,9 @@ func main() {
         input := []byte(byte_array.String())
         fmt.Println(len(input))
         var wg sync.WaitGroup
-        core_num := 3
-        kmer_len := 15
+        core_num := 1
+        kmer_len := 5
+        distance := 10
         result := make(chan int, 1000000)
         runtime.GOMAXPROCS(core_num)
 
@@ -65,7 +66,7 @@ func main() {
 
         for i := 0; i < core_num; i++ {
             wg.Add(1)
-        	go func(genome []byte, index int, core_num int, result chan int) {
+        	go func(genome []byte, index int, core_num int, kmer_len int, distance int, result chan int) {
                 defer wg.Done()
         		begin := len(genome)*index/core_num
         		end := len(genome)*(index+1)/core_num
@@ -73,8 +74,9 @@ func main() {
                     begin = begin - kmer_len
                 }
         		fmt.Println(begin, end)
-        		for i := begin; i < end-kmer_len; i++ {
-    				kmer := genome[i:i+kmer_len]
+        		for m := begin; m < end-2*kmer_len-distance; m++ {
+                    fmt.Println("m", m)
+    				kmer := append(genome[m:m+kmer_len], genome[m+kmer_len+distance:m+2*kmer_len+distance]...)
     				repr := 0
     				for j := 0; j<len(kmer); j++ {
     					switch kmer[j] {
@@ -89,7 +91,7 @@ func main() {
     				}
     				result <- repr
         		}
-        	}(input, i, core_num, result)
+        	}(input, i, core_num, kmer_len, distance, result)
         }
 
         for res := range result {
