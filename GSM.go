@@ -6,7 +6,7 @@ import (
    "bufio"
    "bytes"
    "sync"
-   // "runtime"
+   "runtime"
    "time"
    "sort"
    "io/ioutil"
@@ -21,10 +21,10 @@ func main() {
     start_time := time.Now()
     gsm := make(map[int]int)
 
-    core_num := 3
+    core_num := 2
     kmer_len := 5
     distance := 10
-    // runtime.GOMAXPROCS(core_num+2)
+    runtime.GOMAXPROCS(core_num+2)
 
     for index, fi := range files {
         fmt.Println(fi.Name())
@@ -45,9 +45,6 @@ func main() {
     		os.Exit(1)
         }
 
-        // header := make([]byte, len(gname))
-        // copy(header, gname)
-
         for {
             line , isPrefix, err := br.ReadLine()
             if err != nil || isPrefix{
@@ -58,19 +55,16 @@ func main() {
         }
 
         input := []byte(byte_array.String())
-        fmt.Println(len(input))
         var wg sync.WaitGroup
         result := make(chan int, core_num)
 
         for i := 0; i < core_num; i++ {
             wg.Add(1)
-            fmt.Println(i)
         	go process(input, i, core_num, kmer_len, distance, result, &wg)
         }
 
         go func() {
             wg.Wait()
-            fmt.Println("close result")
             close(result)
         }()
 
@@ -84,7 +78,6 @@ func main() {
             }
         }
     }
-    // fmt.Println(gsm)
     fmt.Println(len(gsm))
     var keys []int
     for k := range gsm {
@@ -101,18 +94,20 @@ func main() {
 }
 
 func process(genome []byte, i int, core_num int, kmer_len int, distance int, result chan int, wg *sync.WaitGroup) {
-    fmt.Println("iN", i)
     defer wg.Done()
-    fmt.Println("loopin", i)
     begin := len(genome)*i/core_num
     end := len(genome)*(i+1)/core_num
     if begin != 0 {
-        begin = begin - kmer_len
+        begin = begin - 2*kmer_len-distance
     }
-    fmt.Println(begin, end)
     for m := begin; m < end-2*kmer_len-distance; m++ {
-        // fmt.Println("m", m)
-        kmer := append(genome[m:m+kmer_len], genome[m+kmer_len+distance:m+2*kmer_len+distance]...)
+        m1 := m
+        m2 := m+kmer_len
+        m3 := m+kmer_len+distance
+        m4 := m+2*kmer_len+distance
+        kmer := make([]byte, 2*kmer_len)
+        copy(kmer, genome[m1:m2])
+        kmer = append(kmer, genome[m3:m4]...)
         repr := 0
         for j := 0; j<len(kmer); j++ {
             switch kmer[j] {
