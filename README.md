@@ -1,1 +1,1 @@
-go run GSM.go teststring.fasta
+go run GSM.go sequence
