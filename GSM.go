@@ -8,7 +8,7 @@ import (
    "sync"
    "runtime"
    "time"
-   "sort"
+   // "sort"
    "io/ioutil"
 )
 
@@ -84,10 +84,10 @@ func main() {
         keys = append(keys, k)
     }
 
-    sort.Ints(keys)
+/*    sort.Ints(keys)
     for _, k := range keys {
         fmt.Println("Key:", k, "Value:", gsm[k])
-    }
+    }*/
 
     gsm_time := time.Since(start_time)
     fmt.Println("used time", gsm_time)
