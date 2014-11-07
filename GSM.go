@@ -8,9 +8,24 @@ import (
    "sync"
    "runtime"
    "time"
-   // "sort"
+   "sort"
    "io/ioutil"
 )
+
+type ByMap struct{
+    mapp map[int]int
+    keys []int
+}
+
+func (s ByMap) Len() int {
+    return len(s.keys)
+}
+func (s ByMap) Swap(i, j int) {
+    s.keys[i], s.keys[j] = s.keys[j], s.keys[i]
+}
+func (s ByMap) Less(i, j int) bool{
+    return s.mapp[i] < s.mapp[j]
+}
 
 func main() {
     if len(os.Args) != 2 {
@@ -22,19 +37,18 @@ func main() {
     gsm := make(map[int]int)
 
     core_num := 2
-    kmer_len := 5
+    kmer_len := 7
     distance := 10
     runtime.GOMAXPROCS(core_num+2)
 
-    for index, fi := range files {
-        fmt.Println(fi.Name())
+    for _, fi := range files {
+        // fmt.Println(index)
     	f,err := os.Open(os.Args[1] + "/" + fi.Name())
         if err != nil {
             fmt.Printf("%v\n",err)
             os.Exit(1)
         }
 
-        defer f.Close()
         br := bufio.NewReader(f)
         byte_array := bytes.Buffer{}
 
@@ -68,7 +82,22 @@ func main() {
             close(result)
         }()
 
+        gsm1 := make(map[int]int)
+        fmt.Println(gsm1)
+
         for res := range result {
+            if gsm1[res] == 0 {
+                gsm1[res] = 1
+            }
+        }
+
+        for k := range gsm1 {
+            gsm[k] = gsm[k]+1
+        }
+
+        f.Close()
+
+        /*for res := range result {
             if gsm[res] == 0 {
                 gsm[res] = index+1
             } else if gsm[res] == index+1 {
@@ -76,7 +105,7 @@ func main() {
             } else {
                 gsm[res] = -1
             }
-        }
+        }*/
     }
     fmt.Println(len(gsm))
     var keys []int
@@ -84,10 +113,10 @@ func main() {
         keys = append(keys, k)
     }
 
-/*    sort.Ints(keys)
+    sort.Sort(ByMap{gsm, keys})
     for _, k := range keys {
-        fmt.Println("Key:", k, "Value:", gsm[k])
-    }*/
+        fmt.Println("Key:", k, "Value:", gsm[k], "end")
+    }
 
     gsm_time := time.Since(start_time)
     fmt.Println("used time", gsm_time)
