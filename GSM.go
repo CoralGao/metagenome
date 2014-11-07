@@ -24,7 +24,7 @@ func (s ByMap) Swap(i, j int) {
     s.keys[i], s.keys[j] = s.keys[j], s.keys[i]
 }
 func (s ByMap) Less(i, j int) bool{
-    return s.mapp[i] < s.mapp[j]
+    return (s.mapp[s.keys[i]] < s.mapp[s.keys[j]])
 }
 
 func main() {
