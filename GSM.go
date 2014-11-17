@@ -38,12 +38,12 @@ func main() {
 
     core_num := 2
     kmer_len := 7
-    distance := 10
+    distance := 0
     runtime.GOMAXPROCS(core_num+2)
 
-    for _, fi := range files {
-        // fmt.Println(index)
-    	f,err := os.Open(os.Args[1] + "/" + fi.Name())
+    for index, fi := range files {
+        fmt.Println(fi.Name())
+        f,err := os.Open(os.Args[1] + "/" + fi.Name())
         if err != nil {
             fmt.Printf("%v\n",err)
             os.Exit(1)
@@ -55,8 +55,8 @@ func main() {
         _, isPrefix, err := br.ReadLine()
 
         if err != nil || isPrefix {
-    		fmt.Printf("%v\n",err)
-    		os.Exit(1)
+            fmt.Printf("%v\n",err)
+            os.Exit(1)
         }
 
         for {
@@ -65,7 +65,7 @@ func main() {
                 break
             } else {
                 byte_array.Write([]byte(line))
-            }    	
+            }       
         }
 
         input := []byte(byte_array.String())
@@ -74,7 +74,7 @@ func main() {
 
         for i := 0; i < core_num; i++ {
             wg.Add(1)
-        	go process(input, i, core_num, kmer_len, distance, result, &wg)
+            go process(input, i, core_num, kmer_len, distance, result, &wg)
         }
 
         go func() {
@@ -83,16 +83,19 @@ func main() {
         }()
 
         gsm1 := make(map[int]int)
-        fmt.Println(gsm1)
 
         for res := range result {
-            if gsm1[res] == 0 {
-                gsm1[res] = 1
-            }
+            // if gsm1[res] == 0 {
+                gsm1[res] = index + 1
+            // }
         }
 
         for k := range gsm1 {
-            gsm[k] = gsm[k]+1
+            if gsm[k] == 0 {
+                gsm[k] = gsm1[k]
+            } else {
+                gsm[k] = -1
+            }
         }
 
         f.Close()
@@ -134,10 +137,11 @@ func process(genome []byte, i int, core_num int, kmer_len int, distance int, res
         m2 := m+kmer_len
         m3 := m+kmer_len+distance
         m4 := m+2*kmer_len+distance
-        kmer := make([]byte, 2*kmer_len)
+        kmer := make([]byte, kmer_len)
         copy(kmer, genome[m1:m2])
         kmer = append(kmer, genome[m3:m4]...)
         repr := 0
+        d:
         for j := 0; j<len(kmer); j++ {
             switch kmer[j] {
                 case 'A': repr = 4*repr
@@ -146,9 +150,12 @@ func process(genome []byte, i int, core_num int, kmer_len int, distance int, res
                 case 'T': repr = 4*repr + 3
                 default:
                 // we skip any qgram that contains a non-standard base, e.g. N
-                  repr = repr
+                  repr = -1
+                  break d
             }
         }
-        result <- repr
+        if repr!= -1 {
+            result <- repr
+        }
     }
 }
