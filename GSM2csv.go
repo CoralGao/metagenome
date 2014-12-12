@@ -9,29 +9,13 @@ import (
    "runtime"
    "strconv"
    "time"
-   // "sort"
    "io/ioutil"
    "encoding/csv"
 )
 
-type ByMap struct{
-    mapp map[int]int
-    keys []int
-}
-
-func (s ByMap) Len() int {
-    return len(s.keys)
-}
-func (s ByMap) Swap(i, j int) {
-    s.keys[i], s.keys[j] = s.keys[j], s.keys[i]
-}
-func (s ByMap) Less(i, j int) bool{
-    return (s.mapp[s.keys[i]] < s.mapp[s.keys[j]])
-}
-
 func main() {
-    if len(os.Args) != 3 {
-        panic("must provide sequence folder file and readfile.")
+    if len(os.Args) != 4 {
+        panic("must provide sequence folder file, readfile and result file name.")
     }
 
     resultRead := make(chan int, 10)
@@ -51,7 +35,7 @@ func main() {
     distance := 0
     runtime.GOMAXPROCS(core_num+2)
 
-    resultfile, err := os.Create("result1.csv")
+    resultfile, err := os.Create(os.Args[3]+".csv")
     if err != nil {
         fmt.Printf("%v\n",err)
         os.Exit(1)
@@ -72,7 +56,6 @@ func main() {
     rw.Flush()
 
     for index, fi := range files {
-        fmt.Println(fi.Name())
         f,err := os.Open(os.Args[1] + "/" + fi.Name())
         if err != nil {
             fmt.Printf("%v\n",err)
@@ -234,7 +217,6 @@ func CountFreq(readFile string, K int, result chan int) {
 
 func ProcessRead(reads chan []byte, kmer_len int, distance int, result chan int) {
     for read := range reads {
-        // fmt.Println(string(read))
         for m := 0; m < len(read) - 2*kmer_len - distance; m++ {
             m1 := m
             m2 := m+kmer_len
