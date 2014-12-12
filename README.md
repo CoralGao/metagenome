@@ -1,3 +1,3 @@
 go run GSM.go sequence
 
-go run GSM2csv.go genomesFolder readFile
+go run GSM2csv.go genomesFolder readFile resultName
