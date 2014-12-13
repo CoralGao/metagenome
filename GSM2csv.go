@@ -18,6 +18,7 @@ func main() {
         panic("must provide sequence folder file, readfile and result file name.")
     }
 
+    // Count GSM for read file
     resultRead := make(chan int, 10)
     go CountFreq(os.Args[2], 14, resultRead)
     gsmread := make(map[int]int)
@@ -35,6 +36,7 @@ func main() {
     distance := 0
     runtime.GOMAXPROCS(core_num+2)
 
+    // Build a csv file to store the GSM from genomes&reads
     resultfile, err := os.Create(os.Args[3]+".csv")
     if err != nil {
         fmt.Printf("%v\n",err)
@@ -55,6 +57,7 @@ func main() {
     }
     rw.Flush()
 
+    // Get the unique GSM frequency from genome files
     for index, fi := range files {
         f,err := os.Open(os.Args[1] + "/" + fi.Name())
         if err != nil {
@@ -117,7 +120,7 @@ func main() {
 
     }
 
-    fmt.Println(gsmread)
+    // Merge the unique GSM from genome files & reads to csv file
     for k := range gsm {
         if gsm[k] != -1 {
             line := make([]string, len(files)+2)
