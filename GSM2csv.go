@@ -10,6 +10,7 @@ import (
    "strconv"
    "time"
    "io/ioutil"
+   "math"
    "encoding/csv"
 )
 
@@ -31,7 +32,7 @@ func main() {
     gsm := make(map[int]int)
     gsmFreq := make(map[int]int)
 
-    core_num := 2
+    core_num := 1
     kmer_len := 7
     distance := 0
     runtime.GOMAXPROCS(core_num+2)
@@ -216,8 +217,12 @@ func CountFreq(readFile string, K int, result chan int) {
       }
       defer f.Close()
       scanner := bufio.NewScanner(f)
+      i := 0.0
       for scanner.Scan() {
+        if math.Mod(i, 2.0) == 1 {
          reads <- []byte(scanner.Text())
+        }
+        i++
       }
       close(reads)
    }()
