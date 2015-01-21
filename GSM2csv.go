@@ -57,8 +57,9 @@ func main() {
     for index, fi := range files {
         head[index+1] = fi.Name()
     }
-    headb := make([]string, 1)
-    headb[0] = "b"
+    headb := make([]string, 2)
+    headb[0] = "kmer"
+    headb[1] = "b"
 
     returnError := rw.Write(head)
     if returnError != nil {
@@ -140,18 +141,18 @@ func main() {
     for k := range gsm {
         if gsm[k] != -1 {
             line := make([]string, len(files)+1)
-            lineb := make([]string, 1)
+            lineb := make([]string, 2)
             for i := range line {
                 if i == 0 {
                     line[0] = strconv.Itoa(k)
+                    lineb[0] = strconv.Itoa(k)
                 } else if i == gsm[k] {
                     line[gsm[k]] = strconv.Itoa(gsmFreq[k])
                 } else {
                     line[i] = strconv.Itoa(0)
                 } 
             }
-            lineb[0] = strconv.Itoa(gsmread[k])
-            fmt.Println(strconv.Itoa(gsmread[k]))
+            lineb[1] = strconv.Itoa(gsmread[k])
             returnError := rw.Write(line)
             returnErrorb := rwb.Write(lineb)
             if returnError != nil {
