@@ -14,8 +14,8 @@ import (
 )
 
 func main() {
-    if len(os.Args) != 4 {
-        panic("must provide sequence folder file, readfile and result file name.")
+    if len(os.Args) != 5 {
+        panic("must provide sequence folder file, readfile and result file names.")
     }
 
     // Count GSM for read file
@@ -37,25 +37,40 @@ func main() {
     runtime.GOMAXPROCS(core_num+2)
 
     // Build a csv file to store the GSM from genomes&reads
-    resultfile, err := os.Create(os.Args[3]+".csv")
-    if err != nil {
-        fmt.Printf("%v\n",err)
+    resultfile, err1 := os.Create(os.Args[3]+".csv")
+    if err1 != nil {
+        fmt.Printf("%v\n",err1)
         os.Exit(1)
     }
+
+    resultbfile, err2 := os.Create(os.Args[4]+".csv")
+    if err2 != nil {
+        fmt.Printf("%v\n",err2)
+        os.Exit(1)
+    }
+
     rw := csv.NewWriter(resultfile)
-    head := make([]string, len(files)+2)
+    rwb := csv.NewWriter(resultbfile)
+    head := make([]string, len(files)+1)
     head[0] = "kmer"
 
     for index, fi := range files {
         head[index+1] = fi.Name()
     }
-    head[len(files)+1] = "b"
+    headb := make([]string, 1)
+    headb[0] = "b"
 
     returnError := rw.Write(head)
     if returnError != nil {
         fmt.Println(returnError)
     }
+
+    returnErrorb := rwb.Write(headb)
+    if returnErrorb != nil {
+        fmt.Println(returnErrorb)
+    }
     rw.Flush()
+    rwb.Flush()
 
     // Get the unique GSM frequency from genome files
     for index, fi := range files {
@@ -98,6 +113,7 @@ func main() {
             close(result)
         }()
 
+        // GSM info from the current genome
         gsm1 := make(map[int]int)
         gsmFreq1 := make(map[int]int)
 
@@ -123,25 +139,31 @@ func main() {
     // Merge the unique GSM from genome files & reads to csv file
     for k := range gsm {
         if gsm[k] != -1 {
-            line := make([]string, len(files)+2)
+            line := make([]string, len(files)+1)
+            lineb := make([]string, 1)
             for i := range line {
                 if i == 0 {
                     line[0] = strconv.Itoa(k)
                 } else if i == gsm[k] {
                     line[gsm[k]] = strconv.Itoa(gsmFreq[k])
-                } else if i == len(files)+1 {
-                    line[i] = strconv.Itoa(gsmread[k])
                 } else {
                     line[i] = strconv.Itoa(0)
                 } 
             }
+            lineb[0] = strconv.Itoa(gsmread[k])
+            fmt.Println(strconv.Itoa(gsmread[k]))
             returnError := rw.Write(line)
+            returnErrorb := rwb.Write(lineb)
             if returnError != nil {
                 fmt.Println(returnError)
+            }
+            if returnErrorb != nil {
+                fmt.Println(returnErrorb)
             }
         }
     }
     rw.Flush()
+    rwb.Flush()
 
     gsm_time := time.Since(start_time)
     fmt.Println("used time", gsm_time)
