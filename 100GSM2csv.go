@@ -169,23 +169,31 @@ func main() {
     for i := 0; i < len(mostGSM); i++ {
         for j := 0; j < len(mostGSM[0]); j++ {
             line := make([]string, len(files) + 1)
+            lineb := make([]string, 2)
             for k := range line {
                 if k == 0 {
                     line[0] = strconv.Itoa(mostGSM[i][j])
+                    lineb[0] = strconv.Itoa(mostGSM[i][j])
                 } else if k ==  gsm[mostGSM[i][j]] {
                     line[k] = strconv.Itoa(gsmFreq[mostGSM[i][j]])
                 } else {
                     line[k] = strconv.Itoa(0)
                 }
             }
+            lineb[1] = strconv.Itoa(gsmread[mostGSM[i][j]])
             returnError := rw.Write(line)
+            returnErrorb := rwb.Write(lineb)
             if returnError != nil {
                 fmt.Println(returnError)
+            }
+            if returnErrorb != nil {
+                fmt.Println(returnErrorb)
             }
         }
     }
 
     rw.Flush()
+    rwb.Flush()
 
     gsm_time := time.Since(start_time)
     fmt.Println("used time", gsm_time)
