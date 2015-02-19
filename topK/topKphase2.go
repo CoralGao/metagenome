@@ -91,10 +91,6 @@ func loadOccu(filename string, globalOccu map[int]int16) {
         }
     }
 }
-func contains(s []int, e int) bool {
-    for _, a := range s { if a == e { return true } }
-    return false
-}
 func kmerFreq(filename string, localFreq map[int]int32, kmer_len int) {
         genome := readGenome(os.Args[1] + "/" + filename)
         var wg sync.WaitGroup
@@ -121,17 +117,6 @@ func kmerFreq(filename string, localFreq map[int]int32, kmer_len int) {
             localFreq[k]++
         }
 }
-func compare(i, j []int) bool {
-    // We want Pop to give us the highest, not lowest, priority so we use greater than here.
-    // return pq[i].priority > pq[j].priority
-    if i[0] < j[0] {
-        return true
-    } else if i[0] > j[0] {
-        return false
-    } else{
-        return i[1] > j[1]
-    }
-}
 func readGenome(filename string) []byte{
     f,err := os.Open(filename)
     if err != nil {
@@ -140,7 +125,6 @@ func readGenome(filename string) []byte{
     }
 
     defer f.Close()
-    // fi, _ := f.Stat()
     br := bufio.NewReader(f)
     byte_buffer := bytes.Buffer{}
 
@@ -149,7 +133,6 @@ func readGenome(filename string) []byte{
         fmt.Printf("%v\n", nil)
         os.Exit(1)
     }
-    // fmt.Fprintf(infofile, "%s\t%d\n", head, fi.Size())
     for {
         line, isPrefix, err := br.ReadLine()
         if err != nil || isPrefix {
